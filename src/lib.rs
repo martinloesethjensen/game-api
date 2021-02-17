@@ -1,18 +1,21 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
-#[macro_use]
+#[macro_use] 
 extern crate rocket;
-#[macro_use]
+extern crate dotenv;
+extern crate mongodb;
+extern crate r2d2;
+extern crate r2d2_mongodb;
 extern crate rocket_contrib;
+#[macro_use] 
+extern crate serde_derive;
+extern crate serde_json;
 
-use rocket_contrib::json::{Json, JsonValue};
+use rocket_contrib::json;
+use rocket_contrib::json::JsonValue;
 
+pub mod game;
 mod mongo_connection;
-
-#[get("/")]
-fn hello() -> &'static str {
-    "Hello, world!"
-}
 
 #[catch(500)]
 fn internal_error() -> &'static str {
@@ -32,5 +35,15 @@ pub fn rocket() -> rocket::Rocket {
     rocket::ignite()
         .register(catchers![not_found, internal_error])
         .manage(mongo_connection::init_pool())
-        .mount("/api", routes![hello])
+        .mount(
+            "/game",
+            routes![
+                game::handler::all,
+                game::handler::get,
+                game::handler::post,
+                game::handler::put,
+                game::handler::delete,
+                game::handler::delete_all
+            ],
+        )
 }
