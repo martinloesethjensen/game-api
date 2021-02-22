@@ -22,8 +22,8 @@ fn main() {
             "/api",
             routes![
                 game::handlers::get_all_games,
+                game::handlers::get_game,
                 game::handlers::create_game,
-                global_handlers::init_database,
             ],
         )
         .launch();
