@@ -1,5 +1,5 @@
 use rocket::{http::Status, Request};
-use rocket_contrib::{json, json::Json, json::JsonValue};
+use rocket_contrib::{json, json::JsonValue};
 
 fn error(reason: String) -> JsonValue {
     json!({

@@ -1,4 +1,4 @@
-use rocket::{delete, get, http::Status, post, put, response::status};
+use rocket::{http::Status, response::status};
 use rocket_contrib::json::Json;
 
 use crate::game::models::{Game, NewGame, PlayedGame};
@@ -35,6 +35,6 @@ pub fn create_game(game: Json<NewGame>) -> Result<status::Created<Json<Game>>, S
 pub fn play_game(game_id: String, player_id: String) -> Result<Json<PlayedGame>, Status> {
     match repository::play_game(game_id.parse().unwrap(), player_id) {
         Ok(res) => Ok(Json(res)),
-        Err(err) => Err(Status::InternalServerError),
+        Err(_err) => Err(Status::InternalServerError),
     }
 }
