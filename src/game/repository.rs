@@ -1,6 +1,6 @@
 use crate::game::models::{Game, GamePrice, Image, NewGame, PlayedGame};
 use crate::pg_connection as pg;
-use postgres::Error;
+use postgres::{Client, Error};
 
 pub fn add_game_to_db(game: &NewGame) -> Result<Game, Error> {
     let mut client = match pg::establish_connection() {
@@ -67,7 +67,8 @@ pub fn get_all_games_from_db() -> Result<Vec<Game>, Error> {
     } {
         let game_id = game_row.get(0);
 
-        let game_images = get_images_from_game_id(game_id).unwrap();
+        let game_images =
+            get_images_from_table_where_id("game_images", "game_id", game_id, &mut client).unwrap();
 
         games.push(Game {
             id: game_id,
@@ -82,15 +83,15 @@ pub fn get_all_games_from_db() -> Result<Vec<Game>, Error> {
     Ok(games)
 }
 
-fn get_images_from_game_id(game_id: i32) -> Result<Vec<Image>, Error> {
-    let mut client = match pg::establish_connection() {
-        Ok(client) => client,
-        Err(err) => return Err(err),
-    };
-
+fn get_images_from_table_where_id(
+    table: &str,
+    where_field: &str,
+    id: i32,
+    client: &mut Client,
+) -> Result<Vec<Image>, Error> {
     let mut images: Vec<Image> = Vec::new();
-    let query = "SELECT * FROM game_images WHERE game_id = $1";
-    let results = client.query(query, &[&game_id]);
+    let query = format!("SELECT * FROM {} WHERE {} = $1", table, where_field);
+    let results = client.query(&query[..], &[&id]);
 
     for row in match results {
         Ok(result) => result,
@@ -114,7 +115,9 @@ pub fn get_game_by_id(id: i32) -> Result<Game, Error> {
         Ok(row) => {
             let game_id = row.get(0);
 
-            let game_images = get_images_from_game_id(game_id).unwrap();
+            let game_images =
+                get_images_from_table_where_id("game_images", "game_id", game_id, &mut client)
+                    .unwrap();
 
             let mut game = Game::from_row(&row);
 
@@ -126,13 +129,13 @@ pub fn get_game_by_id(id: i32) -> Result<Game, Error> {
     }
 }
 
-pub fn fetch_game(game_id: i32) {
+//pub fn fetch_game(game_id: i32) {
     // fetch game information
-    // fetch game price information for game
+    // fetch game reward information for game
     // fetch game images
-    // fetch game price images
+    // fetch game reward images
     // TODO: model to send to client
-}
+//}
 
 pub fn play_game(game_id: i32, player_id: String) -> Result<PlayedGame, Error> {
     let mut client = match pg::establish_connection() {
@@ -143,25 +146,27 @@ pub fn play_game(game_id: i32, player_id: String) -> Result<PlayedGame, Error> {
     // add entry into db table `played_games`
     // Return model
 
-    let query = "SELECT * FROM games WHERE id = $1";
-    let result = client.query_one(query, &[&game_id]);
+    let game = match get_game_by_id(game_id) {
+        Ok(game) => game,
+        Err(err) => return Err(err),
+    };
 
+    let mut game_rewards: Vec<GamePrice> = Vec::new();
 
+    let query = "SELECT (game_reward_id) FROM games_prices WHERE game_id = $1";
+    for row in match client.query(query, &[&game_id]) {
+        Ok(result) => result,
+        Err(err) => return Err(err),
+    } {
+        let game_reward_id: i32 = row.get(0);
 
+        let game_reward = get_game_reward_from_id(game_reward_id, &mut client).unwrap();
+        game_rewards.push(game_reward);
+    }
 
-    // let game: Game = match result {
-    //     Ok(row) => {
-    //         let game_id = row.get(0);
-    //         Game {
-    //             id: game_id,
-    //             title: row.get(1),
-    //             body: row.get(2),
-    //             daily_prices
-    //         }
+    // logic for winning
 
-    //     },
-    //     Err(err) => return Err(err),
-    // };
+    // if user wins and multiple prices exist, then choose random
 
     // game winning_chance logic (could maybe use rand crate for randomizing?)
 
@@ -169,7 +174,7 @@ pub fn play_game(game_id: i32, player_id: String) -> Result<PlayedGame, Error> {
 
     Ok(PlayedGame {
         has_won: false,
-        game_price: Some(GamePrice {
+        game_reward: Some(GamePrice {
             id: 1i32,
             title: "bdhsbhsdfj".to_string(),
             body: "fndhbfsd".to_string(),
@@ -177,4 +182,24 @@ pub fn play_game(game_id: i32, player_id: String) -> Result<PlayedGame, Error> {
             images: Vec::new(),
         }),
     })
+}
+
+fn get_game_reward_from_id(id: i32, client: &mut Client) -> Result<GamePrice, Error> {
+    match client.query_one("SELECT * FROM game_rewards WHERE id = $1", &[&id]) {
+        Ok(row) => {
+            let game_reward_images = get_images_from_table_where_id(
+                "game_reward_images",
+                "game_reward_id",
+                id,
+                client,
+            )
+            .unwrap();
+
+            let mut game_reward = GamePrice::from_row(&row);
+            game_reward.images = game_reward_images;
+
+            Ok(game_reward)
+        }
+        Err(err) => return Err(err),
+    }
 }

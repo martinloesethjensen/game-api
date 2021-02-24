@@ -3,7 +3,6 @@ use rocket_contrib::json::Json;
 
 use crate::game::models::{Game, NewGame, PlayedGame};
 use crate::game::repository;
-use crate::global_repository;
 
 #[get("/game")]
 pub fn get_all_games() -> Result<Json<Vec<Game>>, Status> {

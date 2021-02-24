@@ -50,7 +50,7 @@ pub struct NewGamePrice {
 #[derive(Serialize, Debug)]
 pub struct PlayedGame {
     pub has_won: bool,
-    pub game_price: Option<GamePrice>,
+    pub game_reward: Option<GamePrice>,
 }
 
 impl Image {
@@ -73,6 +73,19 @@ impl Game {
             body: row.get(2),
             daily_prices: row.get(3),
             winning_chance: row.get(4),
+            images: Vec::new(),
+        }
+    }
+}
+
+impl GamePrice {
+    pub fn from_row(row: &Row) -> GamePrice {
+        let id = row.get(0);
+        GamePrice {
+            id: id,
+            title: row.get(1),
+            body: row.get(2),
+            available_prices: row.get(3),
             images: Vec::new(),
         }
     }

@@ -9,7 +9,6 @@ extern crate rocket_contrib;
 
 pub mod game;
 pub mod global_handlers;
-pub mod global_repository;
 pub mod pg_connection;
 
 fn main() {
