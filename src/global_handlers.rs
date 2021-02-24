@@ -1,23 +1,24 @@
 use rocket::{http::Status, Request};
 use rocket_contrib::{json, json::Json, json::JsonValue};
 
+fn error(reason: String) -> JsonValue {
+    json!({
+        "status": "error",
+        "reason": reason,
+    })
+}
+
 #[catch(500)]
-pub fn internal_error() -> &'static str {
-    "Whoops! Looks like we messed up."
+pub fn internal_error(req: &Request) -> &'static str {
+    error(req.to_string())
 }
 
 #[catch(503)]
 pub fn service_not_available(req: &Request) -> JsonValue {
-    json!({
-        "status": "error",
-        "reason": req.to_string(),
-    })
+    error(req.to_string())
 }
 
 #[catch(404)]
 pub fn not_found(req: &Request) -> JsonValue {
-    json!({
-        "status": "error",
-        "reason": format!("Resource '{}' was not found.", req.uri())
-    })
+    error(format!("Resource '{}' was not found.", req.uri()))
 }
