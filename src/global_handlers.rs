@@ -1,5 +1,5 @@
-use rocket::Request;
-use rocket_contrib::{json, json::JsonValue};
+use rocket::{http::Status, Request};
+use rocket_contrib::{json, json::Json, json::JsonValue};
 
 #[catch(500)]
 pub fn internal_error() -> &'static str {

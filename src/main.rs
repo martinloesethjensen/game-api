@@ -4,11 +4,12 @@
 extern crate rocket;
 #[macro_use]
 extern crate serde_derive;
-extern crate rocket_contrib;
 extern crate dotenv;
+extern crate rocket_contrib;
 
 pub mod game;
 pub mod global_handlers;
+pub mod global_repository;
 pub mod pg_connection;
 
 fn main() {
@@ -24,6 +25,7 @@ fn main() {
                 game::handlers::get_all_games,
                 game::handlers::get_game,
                 game::handlers::create_game,
+                game::handlers::play_game,
             ],
         )
         .launch();
