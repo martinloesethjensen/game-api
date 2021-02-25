@@ -1,4 +1,5 @@
 use postgres::Row;
+use std::clone;
 
 #[derive(Serialize, Debug)]
 pub struct Game {
@@ -19,7 +20,7 @@ pub struct NewGame {
     pub images: Vec<NewImage>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Clone)]
 pub struct Image {
     pub id: i32,
     pub image: String,

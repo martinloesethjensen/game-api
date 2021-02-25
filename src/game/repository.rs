@@ -1,6 +1,10 @@
+use std::convert::TryInto;
+
 use crate::game::models::{Game, GamePrice, Image, NewGame, PlayedGame};
 use crate::pg_connection as pg;
 use postgres::{Client, Error};
+use rand::Rng;
+use rocket::http::ext::IntoCollection;
 
 pub fn add_game_to_db(game: &NewGame) -> Result<Game, Error> {
     let mut client = match pg::establish_connection() {
@@ -129,14 +133,6 @@ pub fn get_game_by_id(id: i32) -> Result<Game, Error> {
     }
 }
 
-//pub fn fetch_game(game_id: i32) {
-    // fetch game information
-    // fetch game reward information for game
-    // fetch game images
-    // fetch game reward images
-    // TODO: model to send to client
-//}
-
 pub fn play_game(game_id: i32, player_id: String) -> Result<PlayedGame, Error> {
     let mut client = match pg::establish_connection() {
         Ok(client) => client,
@@ -166,20 +162,37 @@ pub fn play_game(game_id: i32, player_id: String) -> Result<PlayedGame, Error> {
 
     // logic for winning
 
-    // if user wins and multiple prices exist, then choose random
+    let game_rewards_length = game_rewards.len();
+    let game_reward_index = if game_rewards_length > 0 {
+        rand::thread_rng().gen_range(0..game_rewards_length)
+    } else {
+        0
+    };
 
-    // game winning_chance logic (could maybe use rand crate for randomizing?)
+    let mut chosen_game_reward = &mut game_rewards[game_reward_index];
 
+    // TODO: do something with game.winning_chance
+    let has_won = rand::random() && chosen_game_reward.available_prices > 0;
+
+    // Update available_prices when one has won a game.
+    if has_won {
+        let query = "UPDATE game_rewards SET available_prices = available_prices-1 WHERE id = $1";
+        client.execute(query, &[&chosen_game_reward.id]).unwrap();
+        chosen_game_reward.available_prices -= 1i32; 
+    }
     // Update daily price in db
+    
 
+    // let images = 
     Ok(PlayedGame {
-        has_won: false,
+        has_won: has_won,
         game_reward: Some(GamePrice {
-            id: 1i32,
-            title: "bdhsbhsdfj".to_string(),
-            body: "fndhbfsd".to_string(),
-            available_prices: 100i32,
-            images: Vec::new(),
+            id: chosen_game_reward.id.to_owned(),
+            title: chosen_game_reward.title.to_owned(),
+            body: chosen_game_reward.body.to_owned(),
+            available_prices: chosen_game_reward.available_prices.to_owned(),
+            images: chosen_game_reward.images.to_owned(),
+            // images: chosen_game_reward.images.iter().map(|o| o.to_owned()).collect(),
         }),
     })
 }
@@ -187,13 +200,9 @@ pub fn play_game(game_id: i32, player_id: String) -> Result<PlayedGame, Error> {
 fn get_game_reward_from_id(id: i32, client: &mut Client) -> Result<GamePrice, Error> {
     match client.query_one("SELECT * FROM game_rewards WHERE id = $1", &[&id]) {
         Ok(row) => {
-            let game_reward_images = get_images_from_table_where_id(
-                "game_reward_images",
-                "game_reward_id",
-                id,
-                client,
-            )
-            .unwrap();
+            let game_reward_images =
+                get_images_from_table_where_id("game_reward_images", "game_reward_id", id, client)
+                    .unwrap();
 
             let mut game_reward = GamePrice::from_row(&row);
             game_reward.images = game_reward_images;
