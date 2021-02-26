@@ -40,5 +40,5 @@ CREATE TABLE IF NOT EXISTS played_games (
     player_id INTEGER NOT NULL,
     game_id INTEGER NOT NULL REFERENCES games(id),
     game_reward_id INTEGER NOT NULL REFERENCES game_rewards(id),
-    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

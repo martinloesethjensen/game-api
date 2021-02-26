@@ -1,5 +1,4 @@
 use postgres::Row;
-use std::clone;
 
 #[derive(Serialize, Debug)]
 pub struct Game {

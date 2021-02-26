@@ -1,10 +1,7 @@
-use std::convert::TryInto;
-
 use crate::game::models::{Game, GamePrice, Image, NewGame, PlayedGame};
 use crate::pg_connection as pg;
 use postgres::{Client, Error};
 use rand::Rng;
-use rocket::http::ext::IntoCollection;
 
 pub fn add_game_to_db(game: &NewGame) -> Result<Game, Error> {
     let mut client = match pg::establish_connection() {
@@ -133,23 +130,21 @@ pub fn get_game_by_id(id: i32) -> Result<Game, Error> {
     }
 }
 
-pub fn play_game(game_id: i32, player_id: String) -> Result<PlayedGame, Error> {
+pub fn play_game(game_id: i32, player_id: i32) -> Result<PlayedGame, Error> {
     let mut client = match pg::establish_connection() {
         Ok(client) => client,
         Err(err) => return Err(err),
     };
-    // fetch game information and price information along with images
-    // add entry into db table `played_games`
-    // Return model
 
-    let game = match get_game_by_id(game_id) {
+    // TODO: maybe not needed here
+    let _game = match get_game_by_id(game_id) {
         Ok(game) => game,
         Err(err) => return Err(err),
     };
 
     let mut game_rewards: Vec<GamePrice> = Vec::new();
 
-    let query = "SELECT (game_reward_id) FROM games_prices WHERE game_id = $1";
+    let query = "SELECT (game_reward_id) FROM games_rewards WHERE game_id = $1";
     for row in match client.query(query, &[&game_id]) {
         Ok(result) => result,
         Err(err) => return Err(err),
@@ -178,12 +173,18 @@ pub fn play_game(game_id: i32, player_id: String) -> Result<PlayedGame, Error> {
     if has_won {
         let query = "UPDATE game_rewards SET available_prices = available_prices-1 WHERE id = $1";
         client.execute(query, &[&chosen_game_reward.id]).unwrap();
-        chosen_game_reward.available_prices -= 1i32; 
+        chosen_game_reward.available_prices -= 1i32;
     }
-    // Update daily price in db
-    
 
-    // let images = 
+    // Add entry to the table `played_games`
+    let query = "INSERT INTO played_games (has_won, player_id, game_id, game_reward_id) VALUES ($1, $2, $3, $4)";
+    client
+        .execute(
+            query,
+            &[&has_won, &player_id, &game_id, &chosen_game_reward.id],
+        )
+        .unwrap();
+
     Ok(PlayedGame {
         has_won: has_won,
         game_reward: Some(GamePrice {
@@ -192,7 +193,6 @@ pub fn play_game(game_id: i32, player_id: String) -> Result<PlayedGame, Error> {
             body: chosen_game_reward.body.to_owned(),
             available_prices: chosen_game_reward.available_prices.to_owned(),
             images: chosen_game_reward.images.to_owned(),
-            // images: chosen_game_reward.images.iter().map(|o| o.to_owned()).collect(),
         }),
     })
 }

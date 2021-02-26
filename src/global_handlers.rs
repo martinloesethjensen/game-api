@@ -1,4 +1,4 @@
-use rocket::{http::Status, Request};
+use rocket::Request;
 use rocket_contrib::{json, json::JsonValue};
 
 fn error(reason: String) -> JsonValue {
@@ -9,7 +9,7 @@ fn error(reason: String) -> JsonValue {
 }
 
 #[catch(500)]
-pub fn internal_error(req: &Request) -> JsonValue{
+pub fn internal_error(req: &Request) -> JsonValue {
     error(req.to_string())
 }
 
