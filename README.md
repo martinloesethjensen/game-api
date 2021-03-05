@@ -34,6 +34,8 @@ Or use the cURL commands defined below.
 
 Remember to have postgres installed and running.
 
+Note: You can generate API documentation like Swagger with [insomnia-documenter](https://www.npmjs.com/package/insomnia-documenter).
+
 ### Play Game
 
 ```sh
