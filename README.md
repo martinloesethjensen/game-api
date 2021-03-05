@@ -28,6 +28,8 @@ TODO
 
 ## API Documentation
 
+[API documentation online here](https://martinloesethjensen.github.io/game-api/)
+
 You can import the [Insomnia documentation json file](insomnia.json) into Insomnia.
 
 Or use the cURL commands defined below.
