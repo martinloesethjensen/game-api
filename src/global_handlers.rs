@@ -9,8 +9,11 @@ fn error(reason: String) -> JsonValue {
 }
 
 #[catch(500)]
-pub fn internal_error(req: &Request) -> JsonValue {
-    error(req.to_string())
+pub fn internal_error() -> JsonValue {
+    json!({
+        "status": "error",
+        "reason": "There was an internal error",
+    })
 }
 
 #[catch(503)]
