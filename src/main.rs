@@ -11,7 +11,15 @@ pub mod game;
 pub mod global_handlers;
 pub mod pg_connection;
 
-fn main() {
+#[cfg(test)]
+mod tests;
+
+#[get("/")]
+fn hello() -> &'static str {
+    "Hello, world!"
+}
+
+pub fn rocket() -> rocket::Rocket {
     rocket::ignite()
         .register(catchers![
             global_handlers::not_found,
@@ -27,5 +35,9 @@ fn main() {
                 game::handlers::play_game,
             ],
         )
-        .launch();
+        .mount("/", routes![hello])
+}
+
+fn main() {
+    rocket().launch();
 }
