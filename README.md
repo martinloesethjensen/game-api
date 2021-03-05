@@ -28,4 +28,51 @@ TODO
 
 ## API Documentation
 
-TODO
+You can import the [Insomnia documentation json file](insomnia.json) into Insomnia.
+
+Or use the cURL commands defined below.
+
+Remember to have postgres installed and running.
+
+### Play Game
+
+```sh
+curl --request GET \
+  --url http://localhost:8000/api/game/play/1/23284323
+```
+
+### Create a Game
+
+```sh
+curl --request POST \
+  --url http://localhost:8000/api/game \
+  --header 'Content-Type: application/json' \
+  --data '{
+ "title": "nfjdnf",
+ "body": "body thingyfdjvcd",
+ "daily_prices": 100,
+ "winning_chance": 5,
+ "images": [
+  {
+   "image": "https://cataas.com/cat"
+  },
+  {
+   "image": "https://cataas.com/cat"
+  }
+ ]
+}'
+```
+
+### Get All Games
+
+```sh
+curl --request GET \
+  --url http://localhost:8000/api/game/
+```
+
+### Get a Game by Id
+
+```sh
+curl --request GET \
+  --url http://localhost:8000/api/game/2
+```
