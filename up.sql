@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS games_rewards (
 
 CREATE TABLE IF NOT EXISTS played_games (
     has_won BOOLEAN NOT NULL,
-    player_id INTEGER NOT NULL,
+    player_id TEXT NOT NULL,
     game_id INTEGER NOT NULL REFERENCES games(id),
     game_reward_id INTEGER NOT NULL REFERENCES game_rewards(id),
     created TIMESTAMP DEFAULT CURRENT_TIMESTAMP

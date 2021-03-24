@@ -38,7 +38,7 @@ pub fn play_game(
     game_id: String,
     player_id: String,
 ) -> Result<Json<PlayedGame>, status::Custom<String>> {
-    match repository::play_game(game_id.parse().unwrap(), player_id.parse().unwrap()) {
+    match repository::play_game(game_id.parse().unwrap(), player_id) {
         Ok(res) => Ok(Json(res)),
         Err(err) => Err(status::Custom(Status::InternalServerError, err.to_string())),
     }

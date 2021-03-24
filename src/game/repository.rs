@@ -130,7 +130,7 @@ pub fn get_game_by_id(id: i32) -> Result<Game, Error> {
     }
 }
 
-pub fn play_game(game_id: i32, player_id: i32) -> Result<PlayedGame, Error> {
+pub fn play_game(game_id: i32, player_id: String) -> Result<PlayedGame, Error> {
     let mut client = match pg::establish_connection() {
         Ok(client) => client,
         Err(err) => return Err(err),
